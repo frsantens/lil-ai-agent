@@ -1,9 +1,20 @@
+import os
+
 def get_files_info(working_directory, directory=None):
-    os.path.join(working_directory, directory)
-    if working_directory is not in os.path.abspath(directory):
+    if directory is None:
+        dir = working_directory
+    else:
+        dir = os.path.join(working_directory, directory)
+    if not os.path.abspath(dir).startswith(os.path.abspath(working_directory)):
         return f'Error: Cannot list "{directory}" as it is outside the permitted working directory'
-    if not os.path.isdir(directory):
+    if not os.path.isdir(dir):
         return f'Error: "{directory}" is not a directory'
-    for content in os.listdir(directory):
-        content_str = f"- {content}: {os.path.getsize(os.path.join(directory, content))} bytes, is_dir={os.path.isdir(os.path.join(directory, content))}"
-        print(content_str)
+    content_str = []
+    for content in os.listdir(os.path.abspath(dir)):
+        try:
+            content_str.append(f"- {content}: file_size={os.path.getsize(os.path.join(dir, content))} bytes, is_dir={os.path.isdir(os.path.join(dir, content))}")
+        except Exception as e:
+            content_str.append(f"Error: {e}")
+    return '\n'.join(content_str)
+
+            
