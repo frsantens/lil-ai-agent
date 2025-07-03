@@ -19,7 +19,7 @@ def get_file_content(working_directory, file_path):
 
 
            
-schema_get_files_content = types.FunctionDeclaration(
+schema_get_file_content = types.FunctionDeclaration(
     name="get_file_content",
     description="Retrieves the content of a specified file, constrained to the working directory. If the file is larger than 10000 characters, it truncates the content.",
     parameters=types.Schema(
