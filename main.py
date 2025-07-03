@@ -5,6 +5,7 @@ from functions.get_files_info import schema_get_files_info
 from functions.get_file_content import schema_get_files_content
 from functions.write_file import schema_write_file
 from functions.run_python_file import schema_run_python_file
+from call_function import call_function
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
@@ -40,8 +41,17 @@ def main():
         print("Prompt tokens:", response.usage_metadata.prompt_token_count)
         print("Response tokens:", response.usage_metadata.candidates_token_count)
     if response.function_calls:
+
+        verbose = "--verbose" in sys.argv
         for function_call_part in response.function_calls: 
-            print(f"Calling function: {function_call_part.name}({function_call_part.args})")
+            function_call_result = call_function(function_call_part, verbose)
+            
+            if not function_call_result.parts[0].function_response.response:
+                raise Exception("Function call result missing response")
+            
+            if verbose:
+                print(f"-> {function_call_result.parts[0].function_response.response}")
+
     else:
         print("Response:")
         print(response.text)
