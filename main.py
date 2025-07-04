@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 
 from prompts import system_prompt
 from call_function import call_function, available_functions
+from config import MAX_ITERATIONS
 
 
 def main():
@@ -32,7 +33,26 @@ def main():
         types.Content(role="user", parts=[types.Part(text=user_prompt)]),
     ]
 
-    generate_content(client, messages, verbose)
+    #generate_content(client, messages, verbose)
+
+    iterations = 0
+    while True:
+        iterations += 1
+        if iterations > MAX_ITERATIONS:
+            print(f"Max iterations of {MAX_ITERATIONS} reached")
+            sys.exit(1)
+
+        try:
+           final_response = generate_content(client, messages, verbose)
+           if final_response:
+               print(final_response)
+               break
+        except Exception as e:
+            print(f'Error in generate_content: {e}')
+    
+
+
+
 
 
 def generate_content(client, messages, verbose):
@@ -46,9 +66,14 @@ def generate_content(client, messages, verbose):
     if verbose:
         print("Prompt tokens:", response.usage_metadata.prompt_token_count)
         print("Response tokens:", response.usage_metadata.candidates_token_count)
+           
 
     if not response.function_calls:
-        return response.text
+            messages.append(response.candidates[0].content)
+            return response.text
+    
+    messages.append(response.candidates[0].content)
+
 
     function_responses = []
     for function_call_part in response.function_calls:
@@ -64,6 +89,10 @@ def generate_content(client, messages, verbose):
 
     if not function_responses:
         raise Exception("no function responses generated, exiting.")
+
+    messages.append(
+        types.Content(role="tool", parts=function_responses)
+        )
 
 
 if __name__ == "__main__":
